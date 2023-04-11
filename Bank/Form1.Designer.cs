@@ -58,7 +58,7 @@
             Email = new TextBox();
             DOB = new DateTimePicker();
             Previous = new Button();
-            button1 = new Button();
+            Next = new Button();
             FindID = new Button();
             SuspendLayout();
             // 
@@ -322,15 +322,15 @@
             Previous.UseVisualStyleBackColor = true;
             Previous.Click += Previous_Click;
             // 
-            // button1
+            // Next
             // 
-            button1.Location = new Point(556, 407);
-            button1.Name = "button1";
-            button1.Size = new Size(94, 29);
-            button1.TabIndex = 30;
-            button1.Text = "Next";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            Next.Location = new Point(556, 407);
+            Next.Name = "Next";
+            Next.Size = new Size(94, 29);
+            Next.TabIndex = 30;
+            Next.Text = "Next";
+            Next.UseVisualStyleBackColor = true;
+            Next.Click += Next_Click;
             // 
             // FindID
             // 
@@ -348,7 +348,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(969, 507);
             Controls.Add(FindID);
-            Controls.Add(button1);
+            Controls.Add(Next);
             Controls.Add(Previous);
             Controls.Add(DOB);
             Controls.Add(Email);
@@ -418,7 +418,7 @@
         private TextBox Email;
         private DateTimePicker DOB;
         private Button Previous;
-        private Button button1;
+        private Button Next;
         private Button FindID;
     }
 }

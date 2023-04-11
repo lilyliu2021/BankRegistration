@@ -1,6 +1,10 @@
 using System.Data.SqlClient;
 using System.Data;
 using System.Diagnostics.Metrics;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Bank
 {
@@ -65,6 +69,7 @@ namespace Bank
 
             SqlCommand cmdFind = new SqlCommand(queryFind, connObj);
             SqlDataReader reader = cmdFind.ExecuteReader();
+
             if (reader.HasRows == false)
             {
                 reader.Close();
@@ -173,15 +178,18 @@ namespace Bank
                         String queryAdd = $"INSERT INTO Customer(CustomerID,FirstName,LastName,DOB,StreetNo,StreetName,City,Province,PostalCode,Country,PhoneNO,Email) VALUES ('{CustomerID.Text}','{FirstName.Text}','{LastName.Text}','{DOB.Value}','{StreetNo.Text}','{StreetName.Text}','{City.Text}','{Province.Text}','{PostalCode.Text}','{Country.Text}','{PhoneNo.Text}','{Email.Text}');";
 
                         SqlCommand cmdAdd = new SqlCommand(queryAdd, connObj);
-                        cmdAdd.ExecuteNonQuery();
+                        int addedRows = cmdAdd.ExecuteNonQuery();
+                        if (addedRows > 0)
+                        {
+                            //Let the user know it was successful
+                            MessageBox.Show("Record Added!");
+                        }
                     }
                     catch (SqlException ex)
                     {
                         MessageBox.Show("Failed Insert: ", ex.Message);
                     }
 
-                    //Let the user know it was successful
-                    MessageBox.Show("Record Added!");
                     //CustomerID.Text = getCurrentID().ToString();
                     currentID = int.Parse(CustomerID.Text);
                     FirstName.Clear();
@@ -209,12 +217,23 @@ namespace Bank
             else
             {
                 //Use an sql statement to update the data (use sqlCommand to Update data and a function that is part of the sqlCommand called .ExecuteNonQuery())
-                String queryUpdate = $"UPDATE Customer SET CustomerID={currentID},FirstName='{fName}',LastName='{lName}',DOB='{dateBirth}',StreetNo='{streetNo}',StreetName='{streetName}',City='{city}',Province='{province}',PostalCode='{Postal}',Country='{country}',PhoneNO='{phoneNo}',Email='{email}' WHERE CustomerID={CustomerID.Text};";
+                try
+                {
+                    String queryUpdate = $"UPDATE Customer SET CustomerID={currentID},FirstName='{fName}',LastName='{lName}',DOB='{dateBirth}',StreetNo='{streetNo}',StreetName='{streetName}',City='{city}',Province='{province}',PostalCode='{Postal}',Country='{country}',PhoneNO='{phoneNo}',Email='{email}' WHERE CustomerID={CustomerID.Text};";
 
-                SqlCommand cmdUpdate = new SqlCommand(queryUpdate, connObj);
-                cmdUpdate.ExecuteNonQuery();
-                //Let the user know it was successful   
-                MessageBox.Show("Record Updated!");
+                    SqlCommand cmdUpdate = new SqlCommand(queryUpdate, connObj);
+                    int updatedRows = cmdUpdate.ExecuteNonQuery();
+                    if (updatedRows > 0)
+                    {
+                        //Let the user know it was successful   
+                        MessageBox.Show("Record Updated!");
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    MessageBox.Show("Failed Update: ", ex.Message);
+                }
+
                 currentID = int.Parse(CustomerID.Text);
                 FirstName.Clear();
                 LastName.Clear();
@@ -270,12 +289,23 @@ namespace Bank
                     //search for the record
 
                     //if you find it delete it
-                    String queryDelete = $"DELETE FROM Customer WHERE CustomerID={currentID};";
+                    try
+                    {
+                        String queryDelete = $"DELETE FROM Customer WHERE CustomerID={currentID};";
 
-                    SqlCommand cmdDelete = new SqlCommand(queryDelete, connObj);
-                    cmdDelete.ExecuteNonQuery();
-                    //inform the user it had successfuly been deleted
-                    MessageBox.Show("Record Delete Successfully!!");
+                        SqlCommand cmdDelete = new SqlCommand(queryDelete, connObj);
+                        int deletedRows = cmdDelete.ExecuteNonQuery();
+                        if (deletedRows > 0)
+                        {
+                            //inform the user it had successfuly been deleted
+                            MessageBox.Show("Record Delete Successfully!!");
+                        }
+                    }
+                    catch (SqlException ex)
+                    {
+                        MessageBox.Show("Failed Delete: ", ex.Message);
+                    }
+
                     // clear data form form
                 }
             }
@@ -320,21 +350,124 @@ namespace Bank
         private void Previous_Click(object sender, EventArgs e)//Optional
         {
             //search the Database for the first customer that who Has an ID less than the current customer
+
             //if there is not ID less than the current, let the user know they are at the beginning of the file
-            //If you do find the data, Display in the Texboxes   
+            //If you do find the data, Display in the Texboxes 
+            int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
+            try
+            {
+                // Create a SQL query to retrieve the previous record based on the ID
+                string queryPrevious = $"SELECT TOP 1 * FROM Customer WHERE CustomerID < {currentId} ORDER BY CustomerID DESC";
+                // Create a new SqlCommand object with the SQL query and connection
+                SqlCommand cmd = new SqlCommand(queryPrevious, connObj);
+                // Execute the SQL query and create a SqlDataReader object
+                SqlDataReader reader = cmd.ExecuteReader();
+                // Read the results and populate the form controls with the data
+                if (reader.Read())
+                {
+                    MessageBox.Show("Find The Previous Record!");
+                    currentID = reader.GetInt32(0);
+                    fName = reader.GetValue(2).ToString();
+                    lName = reader.GetValue(3).ToString();
+                    dateBirth = reader.GetDateTime(4);
+                    streetNo = reader.GetValue(5).ToString();
+                    streetName = reader.GetValue(6).ToString();
+                    city = reader.GetValue(7).ToString();
+                    province = reader.GetValue(8).ToString();
+                    Postal = reader.GetValue(9).ToString();
+                    country = reader.GetValue(10).ToString();
+                    phoneNo = reader.GetValue(11).ToString();
+                    email = reader.GetValue(12).ToString();
+                    CustomerID.Text = currentID.ToString();
+                    FirstName.Text = fName;
+                    LastName.Text = lName;
+                    DOB.Value = dateBirth;
+                    StreetNo.Text = streetNo;
+                    StreetName.Text = streetName;
+                    City.Text = city;
+                    Province.Text = province;
+                    PostalCode.Text = Postal;
+                    Country.Text = country;
+                    PhoneNo.Text = phoneNo;
+                    Email.Text = email;
+                    currentId = int.Parse(CustomerID.Text);
+                }
+                else
+                {
+                    MessageBox.Show("It is the first record!");
+                }
+                // Close the SqlDataReader
+                reader.Close();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Failed Move Previous: ", ex.Message);
+            }
         }
         private void Read_Click(object sender, EventArgs e)//Optional
         {
             //-------- this is not a requierment but can be fun to add to your form ---//
             // show all customers in a new form 
         }
-
-        private void button1_Click(object sender, EventArgs e)//Optional
+        
+        private void Next_Click(object sender, EventArgs e)//Optional
         {
             //-------- this is a requierment ---//
             //search the Database for the first customer that who Has an ID Greater than the current customer
             //if there is no ID greater than the current, let the user know they are at the end of the file
-            //If you do find the data, Display in the Texboxes  
+            //If you do find the data, Display in the Texboxes
+            // int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
+            int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
+            try
+            {
+                // Create a SQL query to retrieve the previous record based on the ID
+                string queryNext = $"SELECT TOP 1 * FROM Customer WHERE CustomerID > {currentId} ORDER BY CustomerID ASC";
+                // Create a new SqlCommand object with the SQL query and connection
+                SqlCommand cmd = new SqlCommand(queryNext, connObj);
+                // Execute the SQL query and create a SqlDataReader object
+                SqlDataReader reader = cmd.ExecuteReader();
+                // Read the results and populate the form controls with the data
+                if (reader.Read())
+                {
+                    MessageBox.Show("Find The Next Record!");
+                    currentID = reader.GetInt32(0);
+                    fName = reader.GetValue(2).ToString();
+                    lName = reader.GetValue(3).ToString();
+                    dateBirth = reader.GetDateTime(4);
+                    streetNo = reader.GetValue(5).ToString();
+                    streetName = reader.GetValue(6).ToString();
+                    city = reader.GetValue(7).ToString();
+                    province = reader.GetValue(8).ToString();
+                    Postal = reader.GetValue(9).ToString();
+                    country = reader.GetValue(10).ToString();
+                    phoneNo = reader.GetValue(11).ToString();
+                    email = reader.GetValue(12).ToString();
+                    CustomerID.Text = currentID.ToString();
+                    FirstName.Text = fName;
+                    LastName.Text = lName;
+                    DOB.Value = dateBirth;
+                    StreetNo.Text = streetNo;
+                    StreetName.Text = streetName;
+                    City.Text = city;
+                    Province.Text = province;
+                    PostalCode.Text = Postal;
+                    Country.Text = country;
+                    PhoneNo.Text = phoneNo;
+                    Email.Text = email;
+                    currentId = int.Parse(CustomerID.Text);
+                }
+                else
+                {
+                    MessageBox.Show("It is the Last record!");
+                }
+                // Close the SqlDataReader
+                reader.Close();
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Failed Move Next: ", ex.Message);
+            }
+
         }
     }
 }
