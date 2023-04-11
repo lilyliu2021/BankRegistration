@@ -60,6 +60,8 @@
             Previous = new Button();
             Next = new Button();
             FindID = new Button();
+            label13 = new Label();
+            BranchID = new TextBox();
             SuspendLayout();
             // 
             // label1
@@ -173,13 +175,13 @@
             // 
             // Read
             // 
-            Read.Location = new Point(386, 343);
+            Read.Location = new Point(702, 343);
             Read.Name = "Read";
-            Read.Size = new Size(94, 29);
+            Read.Size = new Size(160, 29);
             Read.TabIndex = 12;
-            Read.Text = "Read";
+            Read.Text = "Show All Customers";
             Read.UseVisualStyleBackColor = true;
-            Read.Click += Read_Click;
+            Read.Click += ShowAll_Click;
             // 
             // Update
             // 
@@ -203,7 +205,7 @@
             // 
             // Clear
             // 
-            Clear.Location = new Point(723, 343);
+            Clear.Location = new Point(556, 343);
             Clear.Name = "Clear";
             Clear.Size = new Size(94, 29);
             Clear.TabIndex = 15;
@@ -314,7 +316,7 @@
             // 
             // Previous
             // 
-            Previous.Location = new Point(556, 343);
+            Previous.Location = new Point(386, 343);
             Previous.Name = "Previous";
             Previous.Size = new Size(94, 29);
             Previous.TabIndex = 29;
@@ -324,7 +326,7 @@
             // 
             // Next
             // 
-            Next.Location = new Point(556, 407);
+            Next.Location = new Point(386, 407);
             Next.Name = "Next";
             Next.Size = new Size(94, 29);
             Next.TabIndex = 30;
@@ -342,11 +344,30 @@
             FindID.UseVisualStyleBackColor = true;
             FindID.Click += FindID_Click;
             // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(434, 86);
+            label13.Name = "label13";
+            label13.Size = new Size(69, 20);
+            label13.TabIndex = 32;
+            label13.Text = "BranchID";
+            // 
+            // BranchID
+            // 
+            BranchID.Location = new Point(547, 79);
+            BranchID.Name = "BranchID";
+            BranchID.Size = new Size(125, 27);
+            BranchID.TabIndex = 33;
+            BranchID.Text = "2";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(969, 507);
+            Controls.Add(BranchID);
+            Controls.Add(label13);
             Controls.Add(FindID);
             Controls.Add(Next);
             Controls.Add(Previous);
@@ -420,5 +441,7 @@
         private Button Previous;
         private Button Next;
         private Button FindID;
+        private Label label13;
+        private TextBox BranchID;
     }
 }

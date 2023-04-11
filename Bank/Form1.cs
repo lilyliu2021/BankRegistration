@@ -12,6 +12,7 @@ namespace Bank
     {
         SqlConnection connObj;
         int currentID;
+        int branchID;
         string fName;
         string lName;
         DateTime dateBirth;
@@ -27,6 +28,7 @@ namespace Bank
         public Form1()
         {
             currentID = 0;
+            branchID = 0;
             fName = "";
             lName = "";
             dateBirth = DateTime.Now;
@@ -49,21 +51,10 @@ namespace Bank
             connObj.Open();
         }
 
-        //int getCurrentID()
-        //{
-        //    string queryCount = $"SELECT COUNT(*) FROM Customer";
-        //    SqlCommand cmd = new SqlCommand(queryCount, connObj);
-        //    // execute the query and get the count of matching records
-        //    int count = (int)cmd.ExecuteScalar();
-        //    count++;
-        //    return count;
-        //}
+        
         bool ifExist()
         {
-            //search if the record already exists (use sqlCommand to make the query, SqlDataReader go through the data)
-
-            //string querySelect = $"SELECT COUNT(*) FROM Customer WHERE CustomerID={CustomerID.Text}";
-            //SqlCommand cmd = new SqlCommand(querySelect, connObj);
+            //search if the record already exists (use sqlCommand to make the query, SqlDataReader go through the data)            
 
             String queryFind = $"SELECT * FROM Customer WHERE CustomerID={CustomerID.Text};";
 
@@ -78,6 +69,7 @@ namespace Bank
             while (reader.Read())
             {
                 currentID = reader.GetInt32(0);
+                branchID = reader.GetInt32(1);
                 fName = reader.GetValue(2).ToString();
                 lName = reader.GetValue(3).ToString();
                 dateBirth = reader.GetDateTime(4);
@@ -90,6 +82,7 @@ namespace Bank
                 phoneNo = reader.GetValue(11).ToString();
                 email = reader.GetValue(12).ToString();
                 CustomerID.Text = currentID.ToString();
+                BranchID.Text = branchID.ToString();
                 FirstName.Text = fName;
                 LastName.Text = lName;
                 DOB.Value = dateBirth;
@@ -103,17 +96,7 @@ namespace Bank
                 Email.Text = email;
             }
             reader.Close();
-            return true;
-            // execute the query and get the count of matching records
-            //int count = (int)cmd.ExecuteScalar();
-            //if (count > 0)
-            //{
-            //    return true;
-            //}
-            //else
-            //{
-            //    return false;
-            //}
+            return true;           
         }
 
         bool ifFilled()
@@ -125,6 +108,7 @@ namespace Bank
             else
             {
                 currentID = int.Parse(CustomerID.Text);
+                branchID=int .Parse(BranchID.Text);
                 fName = FirstName.Text;
                 lName = LastName.Text;
                 dateBirth = DOB.Value;
@@ -175,7 +159,7 @@ namespace Bank
                     //instert the data into the database    (use sqlCommand to insert data and a function that is part of the sqlCommand called .ExecuteNonQuery())
                     try
                     {
-                        String queryAdd = $"INSERT INTO Customer(CustomerID,FirstName,LastName,DOB,StreetNo,StreetName,City,Province,PostalCode,Country,PhoneNO,Email) VALUES ('{CustomerID.Text}','{FirstName.Text}','{LastName.Text}','{DOB.Value}','{StreetNo.Text}','{StreetName.Text}','{City.Text}','{Province.Text}','{PostalCode.Text}','{Country.Text}','{PhoneNo.Text}','{Email.Text}');";
+                        String queryAdd = $"INSERT INTO Customer(CustomerID,BranchID,FirstName,LastName,DOB,StreetNo,StreetName,City,Province,PostalCode,Country,PhoneNO,Email) VALUES ('{CustomerID.Text}','{BranchID.Text}','{FirstName.Text}','{LastName.Text}','{DOB.Value}','{StreetNo.Text}','{StreetName.Text}','{City.Text}','{Province.Text}','{PostalCode.Text}','{Country.Text}','{PhoneNo.Text}','{Email.Text}');";
 
                         SqlCommand cmdAdd = new SqlCommand(queryAdd, connObj);
                         int addedRows = cmdAdd.ExecuteNonQuery();
@@ -219,7 +203,7 @@ namespace Bank
                 //Use an sql statement to update the data (use sqlCommand to Update data and a function that is part of the sqlCommand called .ExecuteNonQuery())
                 try
                 {
-                    String queryUpdate = $"UPDATE Customer SET CustomerID={currentID},FirstName='{fName}',LastName='{lName}',DOB='{dateBirth}',StreetNo='{streetNo}',StreetName='{streetName}',City='{city}',Province='{province}',PostalCode='{Postal}',Country='{country}',PhoneNO='{phoneNo}',Email='{email}' WHERE CustomerID={CustomerID.Text};";
+                    String queryUpdate = $"UPDATE Customer SET CustomerID={currentID},BranchID={branchID},FirstName='{fName}',LastName='{lName}',DOB='{dateBirth}',StreetNo='{streetNo}',StreetName='{streetName}',City='{city}',Province='{province}',PostalCode='{Postal}',Country='{country}',PhoneNO='{phoneNo}',Email='{email}' WHERE CustomerID={CustomerID.Text};";
 
                     SqlCommand cmdUpdate = new SqlCommand(queryUpdate, connObj);
                     int updatedRows = cmdUpdate.ExecuteNonQuery();
@@ -322,6 +306,7 @@ namespace Bank
         {
             //clear all textboxes
             currentID = 0;
+            branchID = 0;
             fName = "";
             lName = "";
             dateBirth = DateTime.Now;
@@ -334,6 +319,7 @@ namespace Bank
             phoneNo = "";
             email = "";
             CustomerID.Text = currentID.ToString();
+            BranchID.Text = branchID.ToString();
             FirstName.Text = fName;
             LastName.Text = lName;
             DOB.Value = dateBirth;
@@ -367,6 +353,7 @@ namespace Bank
                 {
                     MessageBox.Show("Find The Previous Record!");
                     currentID = reader.GetInt32(0);
+                    branchID=reader.GetInt32(1);
                     fName = reader.GetValue(2).ToString();
                     lName = reader.GetValue(3).ToString();
                     dateBirth = reader.GetDateTime(4);
@@ -379,6 +366,7 @@ namespace Bank
                     phoneNo = reader.GetValue(11).ToString();
                     email = reader.GetValue(12).ToString();
                     CustomerID.Text = currentID.ToString();
+                    BranchID.Text = branchID.ToString();
                     FirstName.Text = fName;
                     LastName.Text = lName;
                     DOB.Value = dateBirth;
@@ -404,12 +392,7 @@ namespace Bank
                 MessageBox.Show("Failed Move Previous: ", ex.Message);
             }
         }
-        private void Read_Click(object sender, EventArgs e)//Optional
-        {
-            //-------- this is not a requierment but can be fun to add to your form ---//
-            // show all customers in a new form 
-        }
-        
+
         private void Next_Click(object sender, EventArgs e)//Optional
         {
             //-------- this is a requierment ---//
@@ -431,6 +414,7 @@ namespace Bank
                 {
                     MessageBox.Show("Find The Next Record!");
                     currentID = reader.GetInt32(0);
+                    branchID=reader.GetInt32(1);
                     fName = reader.GetValue(2).ToString();
                     lName = reader.GetValue(3).ToString();
                     dateBirth = reader.GetDateTime(4);
@@ -443,6 +427,7 @@ namespace Bank
                     phoneNo = reader.GetValue(11).ToString();
                     email = reader.GetValue(12).ToString();
                     CustomerID.Text = currentID.ToString();
+                    BranchID.Text = branchID.ToString();
                     FirstName.Text = fName;
                     LastName.Text = lName;
                     DOB.Value = dateBirth;
@@ -468,6 +453,14 @@ namespace Bank
                 MessageBox.Show("Failed Move Next: ", ex.Message);
             }
 
+        }
+
+        private void ShowAll_Click(object sender, EventArgs e)//Optional
+        {
+            //-------- this is not a requierment but can be fun to add to your form ---//
+            // show all customers in a new form 
+            Form2 form2 = new Form2();
+            form2.Show();
         }
     }
 }
