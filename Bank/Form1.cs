@@ -5,12 +5,13 @@ using static System.ComponentModel.Design.ObjectSelectorEditor;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using System.Linq.Expressions;
 
 namespace Bank
 {
     public partial class Form1 : Form
     {
-        SqlConnection connObj;
+        //SqlConnection connObj;
         int currentID;
         int branchID;
         string fName;
@@ -20,7 +21,7 @@ namespace Bank
         string streetName;
         string city;
         string province;
-        string Postal;
+        string postal;
         string country;
         string phoneNo;
         string email;
@@ -36,69 +37,116 @@ namespace Bank
             streetName = "";
             city = "";
             province = "";
-            Postal = "";
+            postal = "";
             country = "";
             phoneNo = "";
             email = "";
 
-            connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True");
+            //connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True");
             InitializeComponent();
         }
+        void lastRow()
+        {
+            try
+            {
+                using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
+                {
+                    //connection open
+                    connObj.Open();
+                    string queryLast = $"SELECT TOP 1 * FROM Customers ORDER BY CustomerID DESC";
+                    using (SqlCommand cmd = new SqlCommand(queryLast, connObj))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                CustomerID.Text = reader.GetInt32(0).ToString() ?? string.Empty;
+                                BranchID.Text = reader.GetInt32(1).ToString();
+                                FirstName.Text = reader.GetValue(2).ToString() ?? string.Empty;
+                                LastName.Text = reader.GetValue(3).ToString() ?? string.Empty;
+                                DOB.Value = reader.GetDateTime(4);
+                                StreetNo.Text = reader.GetValue(5).ToString() ?? string.Empty;
+                                StreetName.Text = reader.GetValue(6).ToString() ?? string.Empty;
+                                City.Text = reader.GetValue(7).ToString() ?? string.Empty;
+                                Province.Text = reader.GetValue(8).ToString() ?? string.Empty;
+                                PostalCode.Text = reader.GetValue(9).ToString() ?? string.Empty;
+                                Country.Text = reader.GetValue(10).ToString() ?? string.Empty;
+                                PhoneNo.Text = reader.GetValue(11).ToString() ?? string.Empty;
+                                Email.Text = reader.GetValue(12).ToString() ?? string.Empty;
 
+                                currentID = int.Parse(CustomerID.Text);
+                            }
+                        }
+                        connObj.Close();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Failed load the last row: ", ex.Message);
+            }
+        }
         private void Form1_Load(object sender, EventArgs e)//Required step 1
         {
-            //connection open
-            connObj.Open();
+            lastRow();
+            CustomerID.Text = (currentID + 1).ToString();
+            FirstName.Clear();
+            LastName.Clear();
         }
 
-        
+
         bool ifExist()
         {
             //search if the record already exists (use sqlCommand to make the query, SqlDataReader go through the data)            
-
-            String queryFind = $"SELECT * FROM Customer WHERE CustomerID={CustomerID.Text};";
-
-            SqlCommand cmdFind = new SqlCommand(queryFind, connObj);
-            SqlDataReader reader = cmdFind.ExecuteReader();
-
-            if (reader.HasRows == false)
+            try
             {
-                reader.Close();
+                using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
+                {
+                    connObj.Open();
+
+                    String queryFind = $"SELECT * FROM Customers WHERE CustomerID=@customerID";
+                    using (SqlCommand cmdFind = new SqlCommand(queryFind, connObj))
+                    {
+                        cmdFind.Parameters.AddWithValue("@customerID", CustomerID.Text);
+
+                        using (SqlDataReader reader = cmdFind.ExecuteReader())
+                        {
+
+                            if (reader.HasRows == false)
+                            {
+                                reader.Close();
+                                return false;
+                            }
+                            while (reader.Read())
+                            {
+                                CustomerID.Text = reader.GetInt32(0).ToString() ?? string.Empty;
+                                BranchID.Text = reader.GetInt32(1).ToString();
+                                FirstName.Text = reader.GetValue(2).ToString() ?? string.Empty;
+                                LastName.Text = reader.GetValue(3).ToString() ?? string.Empty;
+                                DOB.Value = reader.GetDateTime(4);
+                                StreetNo.Text = reader.GetValue(5).ToString() ?? string.Empty;
+                                StreetName.Text = reader.GetValue(6).ToString() ?? string.Empty;
+                                City.Text = reader.GetValue(7).ToString() ?? string.Empty;
+                                Province.Text = reader.GetValue(8).ToString() ?? string.Empty;
+                                PostalCode.Text = reader.GetValue(9).ToString() ?? string.Empty;
+                                Country.Text = reader.GetValue(10).ToString() ?? string.Empty;
+                                PhoneNo.Text = reader.GetValue(11).ToString() ?? string.Empty;
+                                Email.Text = reader.GetValue(12).ToString() ?? string.Empty;
+                                currentID = int.Parse(CustomerID.Text);
+                            }
+                            reader.Close();
+                            connObj.Close();
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Failed Find The Record: ", ex.Message);
                 return false;
             }
-            while (reader.Read())
-            {
-                currentID = reader.GetInt32(0);
-                branchID = reader.GetInt32(1);
-                fName = reader.GetValue(2).ToString();
-                lName = reader.GetValue(3).ToString();
-                dateBirth = reader.GetDateTime(4);
-                streetNo = reader.GetValue(5).ToString();
-                streetName = reader.GetValue(6).ToString();
-                city = reader.GetValue(7).ToString();
-                province = reader.GetValue(8).ToString();
-                Postal = reader.GetValue(9).ToString();
-                country = reader.GetValue(10).ToString();
-                phoneNo = reader.GetValue(11).ToString();
-                email = reader.GetValue(12).ToString();
-                CustomerID.Text = currentID.ToString();
-                BranchID.Text = branchID.ToString();
-                FirstName.Text = fName;
-                LastName.Text = lName;
-                DOB.Value = dateBirth;
-                StreetNo.Text = streetNo;
-                StreetName.Text = streetName;
-                City.Text = city;
-                Province.Text = province;
-                PostalCode.Text = Postal;
-                Country.Text = country;
-                PhoneNo.Text = phoneNo;
-                Email.Text = email;
-            }
-            reader.Close();
-            return true;           
         }
-
         bool ifFilled()
         {
             if (string.IsNullOrWhiteSpace(FirstName.Text) || string.IsNullOrWhiteSpace(LastName.Text) || string.IsNullOrWhiteSpace(StreetNo.Text) || string.IsNullOrWhiteSpace(StreetName.Text) || string.IsNullOrWhiteSpace(City.Text) || string.IsNullOrWhiteSpace(Province.Text) || string.IsNullOrWhiteSpace(PostalCode.Text) || string.IsNullOrWhiteSpace(Country.Text) || string.IsNullOrWhiteSpace(PhoneNo.Text) || string.IsNullOrWhiteSpace(Email.Text))
@@ -108,7 +156,7 @@ namespace Bank
             else
             {
                 currentID = int.Parse(CustomerID.Text);
-                branchID=int .Parse(BranchID.Text);
+                branchID = int.Parse(BranchID.Text);
                 fName = FirstName.Text;
                 lName = LastName.Text;
                 dateBirth = DOB.Value;
@@ -116,7 +164,7 @@ namespace Bank
                 streetName = StreetName.Text;
                 city = City.Text;
                 province = Province.Text;
-                Postal = PostalCode.Text;
+                postal = PostalCode.Text;
                 country = Country.Text;
                 phoneNo = PhoneNo.Text;
                 email = Email.Text;
@@ -134,56 +182,87 @@ namespace Bank
             // Using SqlCommand and SqlDataReader do the following
 
             //make sure all of the textboxes are filled in
+
             if (!ifFilled())
             {
                 // The textbox is empty or contains only whitespace
                 MessageBox.Show("Please fill in all fields to continue!");
+                return;
             }
-            else
+            // The textbox is not empty and does not contain only whitespace
+            try
             {
-                // The textbox is not empty and does not contain only whitespace
-
-                // check if the record exists
-                if (ifExist())
+                using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
                 {
-                    // the record exists
-                    //    if it does then tell the user it already exists 
-                    MessageBox.Show("The Customer exists, can not be added!");
-                }
-                else
-                {
-                    // the record does not exist                   
-                    MessageBox.Show("The Customer does not exist, add the record!");
-                    //    if it doesn't exist proceed to adding the record 
-
-                    //instert the data into the database    (use sqlCommand to insert data and a function that is part of the sqlCommand called .ExecuteNonQuery())
-                    try
+                    connObj.Open();
+                    // check if the record exists
+                    String queryExist = $"SELECT * FROM Customers WHERE FirstName=@firstName AND LastName=@lastName AND Email=@email";
+                    using (SqlCommand cmdExist = new SqlCommand(queryExist, connObj))
                     {
-                        String queryAdd = $"INSERT INTO Customer(CustomerID,BranchID,FirstName,LastName,DOB,StreetNo,StreetName,City,Province,PostalCode,Country,PhoneNO,Email) VALUES ('{CustomerID.Text}','{BranchID.Text}','{FirstName.Text}','{LastName.Text}','{DOB.Value}','{StreetNo.Text}','{StreetName.Text}','{City.Text}','{Province.Text}','{PostalCode.Text}','{Country.Text}','{PhoneNo.Text}','{Email.Text}');";
+                        cmdExist.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                        cmdExist.Parameters.AddWithValue("@firstName", fName);
+                        cmdExist.Parameters.AddWithValue("@lastName", lName);
+                        cmdExist.Parameters.AddWithValue("@email", email);
 
-                        SqlCommand cmdAdd = new SqlCommand(queryAdd, connObj);
-                        int addedRows = cmdAdd.ExecuteNonQuery();
-                        if (addedRows > 0)
+                        using (SqlDataReader reader = cmdExist.ExecuteReader())
                         {
-                            //Let the user know it was successful
-                            MessageBox.Show("Record Added!");
+                            if (reader.HasRows)// the record exists
+                            {
+                                // if it does then tell the user it already exists 
+                                MessageBox.Show("The Customer exists, can not be added!");
+                                reader.Close();
+                                return;
+                            }
+                        }
+
+                        // the record does not exist                   
+                        MessageBox.Show("Input the Information To Add the New Customer!");
+                        //    if it doesn't exist proceed to adding the record 
+                        //instert the data into the database    (use sqlCommand to insert data and a function that is part of the sqlCommand called .ExecuteNonQuery())
+
+                        String queryAdd = $"INSERT INTO Customers(CustomerID,BranchID,FirstName,LastName,DOB,StreetNo,StreetName,City,Province,PostalCode,Country,PhoneNO,Email) VALUES (@customerID,@branchID,@firstName,@lastName,@DOB,@streetNo,@streetName,@city,@province,@postal,@country,@phoneNo,@email);";
+
+                        using (SqlCommand cmdAdd = new SqlCommand(queryAdd, connObj))
+                        {
+
+                            cmdAdd.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                            cmdAdd.Parameters.AddWithValue("@branchID", BranchID.Text);
+                            cmdAdd.Parameters.AddWithValue("@firstName", FirstName.Text);
+                            cmdAdd.Parameters.AddWithValue("@lastName", LastName.Text);
+                            cmdAdd.Parameters.AddWithValue("@DOB", DOB.Text);
+                            cmdAdd.Parameters.AddWithValue("@streetNo", StreetNo.Text);
+                            cmdAdd.Parameters.AddWithValue("@streetName", StreetName.Text);
+                            cmdAdd.Parameters.AddWithValue("@city", City.Text);
+                            cmdAdd.Parameters.AddWithValue("@province", Province.Text);
+                            cmdAdd.Parameters.AddWithValue("@postal", PostalCode.Text);
+                            cmdAdd.Parameters.AddWithValue("@country", Country.Text);
+                            cmdAdd.Parameters.AddWithValue("@phoneNo", PhoneNo.Text);
+                            cmdAdd.Parameters.AddWithValue("@email", Email.Text);
+                            int addedRows = cmdAdd.ExecuteNonQuery();
+                            if (addedRows > 0)
+                            {
+                                //Let the user know it was successful
+                                MessageBox.Show("The Customer Added Successfully!");
+                                CustomerID.Text = (currentID + 1).ToString();
+                                currentID = int.Parse(CustomerID.Text);
+                                FirstName.Clear();
+                                LastName.Clear();
+                            }
                         }
                     }
-                    catch (SqlException ex)
-                    {
-                        MessageBox.Show("Failed Insert: ", ex.Message);
-                    }
-
-                    //CustomerID.Text = getCurrentID().ToString();
-                    currentID = int.Parse(CustomerID.Text);
-                    FirstName.Clear();
-                    LastName.Clear();
-                    //----------Optional--------//
-                    //add another form that connects to accounts so you can add a chequing account
+                    connObj.Close();
                 }
 
             }
+
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Failed Insert: ", ex.Message);
+            }
         }
+
+        //----------Optional--------//
+        //add another form that connects to accounts so you can add a chequing account
 
         private void Update_Click(object sender, EventArgs e)//Required step 3
         {
@@ -203,24 +282,40 @@ namespace Bank
                 //Use an sql statement to update the data (use sqlCommand to Update data and a function that is part of the sqlCommand called .ExecuteNonQuery())
                 try
                 {
-                    String queryUpdate = $"UPDATE Customer SET CustomerID={currentID},BranchID={branchID},FirstName='{fName}',LastName='{lName}',DOB='{dateBirth}',StreetNo='{streetNo}',StreetName='{streetName}',City='{city}',Province='{province}',PostalCode='{Postal}',Country='{country}',PhoneNO='{phoneNo}',Email='{email}' WHERE CustomerID={CustomerID.Text};";
-
-                    SqlCommand cmdUpdate = new SqlCommand(queryUpdate, connObj);
-                    int updatedRows = cmdUpdate.ExecuteNonQuery();
-                    if (updatedRows > 0)
+                    using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
                     {
-                        //Let the user know it was successful   
-                        MessageBox.Show("Record Updated!");
+                        connObj.Open();
+                        String queryUpdate = $"UPDATE Customers SET CustomerID=@customerID,BranchID=@branchID,FirstName=@firstName,LastName=@lastName,DOB=@DOB,StreetNo=@streetNo,StreetName=@streetName,City=@city,Province=@province,PostalCode=@postal,Country=@country,PhoneNO=@phoneNo,Email=@email WHERE CustomerID=@customerID;";
+                        using (SqlCommand cmdUpdate = new SqlCommand(queryUpdate, connObj))
+                        {
+                            cmdUpdate.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                            cmdUpdate.Parameters.AddWithValue("@branchID", BranchID.Text);
+                            cmdUpdate.Parameters.AddWithValue("@firstName", FirstName.Text);
+                            cmdUpdate.Parameters.AddWithValue("@lastName", LastName.Text);
+                            cmdUpdate.Parameters.AddWithValue("@DOB", DOB.Text);
+                            cmdUpdate.Parameters.AddWithValue("@streetNo", StreetNo.Text);
+                            cmdUpdate.Parameters.AddWithValue("@streetName", StreetName.Text);
+                            cmdUpdate.Parameters.AddWithValue("@city", City.Text);
+                            cmdUpdate.Parameters.AddWithValue("@province", Province.Text);
+                            cmdUpdate.Parameters.AddWithValue("@postal", PostalCode.Text);
+                            cmdUpdate.Parameters.AddWithValue("@country", Country.Text);
+                            cmdUpdate.Parameters.AddWithValue("@phoneNo", PhoneNo.Text);
+                            cmdUpdate.Parameters.AddWithValue("@email", Email.Text);
+                            int updatedRows = cmdUpdate.ExecuteNonQuery();
+                            if (updatedRows > 0)
+                            {
+                                //Let the user know it was successful   
+                                MessageBox.Show("Record Updated!");
+                                currentID = int.Parse(CustomerID.Text);
+                            }
+                        }
+                        connObj.Close();
                     }
                 }
                 catch (SqlException ex)
                 {
                     MessageBox.Show("Failed Update: ", ex.Message);
                 }
-
-                currentID = int.Parse(CustomerID.Text);
-                FirstName.Clear();
-                LastName.Clear();
             }
         }
 
@@ -228,9 +323,10 @@ namespace Bank
         {
             //-------- this is a requierment ---//
             //if the customer ID is empty, let the user know to fill it in and leave the function
+            CustomerID.Enabled = true;
             if (CustomerID.Text == "")
             {
-                MessageBox.Show("Input a CustomerID");
+                MessageBox.Show("Input CustomerID. ");
                 return;
             }
             else
@@ -241,7 +337,7 @@ namespace Bank
 
                 if (!ifExist())
                 {
-                    MessageBox.Show("Can not find the customer!");
+                    MessageBox.Show("Can Not Find The Customer!");
                     currentID = int.Parse(CustomerID.Text);
                     FirstName.Clear();
                     LastName.Clear();
@@ -249,7 +345,7 @@ namespace Bank
                 }
                 else
                 {
-                    MessageBox.Show("Find the customer!");
+                    MessageBox.Show("Find The Customer!");
                     return;
                 }
             }
@@ -261,7 +357,7 @@ namespace Bank
             {
                 //-------- this is a requierment ---//
                 // ask the user if they are sure they want to 
-                DialogResult deleteOrNot = MessageBox.Show("Are you sure you want to delete?", "Yes/No", MessageBoxButtons.YesNo);
+                DialogResult deleteOrNot = MessageBox.Show("Are You Sure You Want To Delete?", "Yes/No", MessageBoxButtons.YesNo);
                 //    if they dont want to delete, leave the function
                 if (deleteOrNot == DialogResult.No)
                 {
@@ -271,18 +367,25 @@ namespace Bank
                 else
                 {
                     //search for the record
-
                     //if you find it delete it
                     try
                     {
-                        String queryDelete = $"DELETE FROM Customer WHERE CustomerID={currentID};";
-
-                        SqlCommand cmdDelete = new SqlCommand(queryDelete, connObj);
-                        int deletedRows = cmdDelete.ExecuteNonQuery();
-                        if (deletedRows > 0)
+                        using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
                         {
-                            //inform the user it had successfuly been deleted
-                            MessageBox.Show("Record Delete Successfully!!");
+                            connObj.Open();
+                            String queryDelete = $"DELETE FROM Customers WHERE CustomerID=@customerID;";
+                            using (SqlCommand cmdDelete = new SqlCommand(queryDelete, connObj))
+                            {
+                                cmdDelete.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                                int deletedRows = cmdDelete.ExecuteNonQuery();
+                                if (deletedRows > 0)
+                                {
+                                    //inform the user it had successfuly been deleted
+                                    MessageBox.Show("Record Delete Successfully!!");
+                                    lastRow();
+                                }
+                            }
+                            connObj.Close();
                         }
                     }
                     catch (SqlException ex)
@@ -295,10 +398,7 @@ namespace Bank
             }
             else
             {
-                MessageBox.Show("Can not find the customer!");
-                currentID = int.Parse(CustomerID.Text);
-                FirstName.Clear();
-                LastName.Clear();
+                MessageBox.Show("Can Not Find The Customer!");
             }
         }
 
@@ -314,7 +414,7 @@ namespace Bank
             streetName = "";
             city = "";
             province = "";
-            Postal = "";
+            postal = "";
             country = "";
             phoneNo = "";
             email = "";
@@ -327,7 +427,7 @@ namespace Bank
             StreetName.Text = streetName;
             City.Text = city;
             Province.Text = province;
-            PostalCode.Text = Postal;
+            PostalCode.Text = postal;
             Country.Text = country;
             PhoneNo.Text = phoneNo;
             Email.Text = email;
@@ -339,53 +439,43 @@ namespace Bank
 
             //if there is not ID less than the current, let the user know they are at the beginning of the file
             //If you do find the data, Display in the Texboxes 
-            int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
+            
             try
             {
-                // Create a SQL query to retrieve the previous record based on the ID
-                string queryPrevious = $"SELECT TOP 1 * FROM Customer WHERE CustomerID < {currentId} ORDER BY CustomerID DESC";
-                // Create a new SqlCommand object with the SQL query and connection
-                SqlCommand cmd = new SqlCommand(queryPrevious, connObj);
-                // Execute the SQL query and create a SqlDataReader object
-                SqlDataReader reader = cmd.ExecuteReader();
-                // Read the results and populate the form controls with the data
-                if (reader.Read())
+                using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
                 {
-                    MessageBox.Show("Find The Previous Record!");
-                    currentID = reader.GetInt32(0);
-                    branchID=reader.GetInt32(1);
-                    fName = reader.GetValue(2).ToString();
-                    lName = reader.GetValue(3).ToString();
-                    dateBirth = reader.GetDateTime(4);
-                    streetNo = reader.GetValue(5).ToString();
-                    streetName = reader.GetValue(6).ToString();
-                    city = reader.GetValue(7).ToString();
-                    province = reader.GetValue(8).ToString();
-                    Postal = reader.GetValue(9).ToString();
-                    country = reader.GetValue(10).ToString();
-                    phoneNo = reader.GetValue(11).ToString();
-                    email = reader.GetValue(12).ToString();
-                    CustomerID.Text = currentID.ToString();
-                    BranchID.Text = branchID.ToString();
-                    FirstName.Text = fName;
-                    LastName.Text = lName;
-                    DOB.Value = dateBirth;
-                    StreetNo.Text = streetNo;
-                    StreetName.Text = streetName;
-                    City.Text = city;
-                    Province.Text = province;
-                    PostalCode.Text = Postal;
-                    Country.Text = country;
-                    PhoneNo.Text = phoneNo;
-                    Email.Text = email;
-                    currentId = int.Parse(CustomerID.Text);
+                    connObj.Open();
+                    string queryPrevious = $"SELECT TOP 1 * FROM Customers WHERE CustomerID < @customerID ORDER BY CustomerID DESC";
+                    using (SqlCommand cmdPrevious = new SqlCommand(queryPrevious, connObj))
+                    {
+                        cmdPrevious.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                        using (SqlDataReader reader = cmdPrevious.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {                                
+                                CustomerID.Text = reader.GetInt32(0).ToString() ?? string.Empty;
+                                BranchID.Text = reader.GetInt32(1).ToString();
+                                FirstName.Text = reader.GetValue(2).ToString() ?? string.Empty;
+                                LastName.Text = reader.GetValue(3).ToString() ?? string.Empty;
+                                DOB.Value = reader.GetDateTime(4);
+                                StreetNo.Text = reader.GetValue(5).ToString() ?? string.Empty;
+                                StreetName.Text = reader.GetValue(6).ToString() ?? string.Empty;
+                                City.Text = reader.GetValue(7).ToString() ?? string.Empty;
+                                Province.Text = reader.GetValue(8).ToString() ?? string.Empty;
+                                PostalCode.Text = reader.GetValue(9).ToString() ?? string.Empty;
+                                Country.Text = reader.GetValue(10).ToString() ?? string.Empty;
+                                PhoneNo.Text = reader.GetValue(11).ToString() ?? string.Empty;
+                                Email.Text = reader.GetValue(12).ToString() ?? string.Empty; 
+                            }
+                            else
+                            {
+                                MessageBox.Show("It is the first record!");
+                            }
+                            reader.Close();
+                        }
+                    }
+                    connObj.Close();
                 }
-                else
-                {
-                    MessageBox.Show("It is the first record!");
-                }
-                // Close the SqlDataReader
-                reader.Close();
             }
             catch (SqlException ex)
             {
@@ -399,60 +489,49 @@ namespace Bank
             //search the Database for the first customer that who Has an ID Greater than the current customer
             //if there is no ID greater than the current, let the user know they are at the end of the file
             //If you do find the data, Display in the Texboxes
-            // int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
-            int currentId = int.Parse(CustomerID.Text); // Get the ID of the current record
+                       
             try
             {
-                // Create a SQL query to retrieve the previous record based on the ID
-                string queryNext = $"SELECT TOP 1 * FROM Customer WHERE CustomerID > {currentId} ORDER BY CustomerID ASC";
-                // Create a new SqlCommand object with the SQL query and connection
-                SqlCommand cmd = new SqlCommand(queryNext, connObj);
-                // Execute the SQL query and create a SqlDataReader object
-                SqlDataReader reader = cmd.ExecuteReader();
-                // Read the results and populate the form controls with the data
-                if (reader.Read())
+                using (SqlConnection connObj = new SqlConnection(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename='C:\Users\liliu\source\repos\C#\Bank\Bank\Bank.mdf';Integrated Security=True"))
                 {
-                    MessageBox.Show("Find The Next Record!");
-                    currentID = reader.GetInt32(0);
-                    branchID=reader.GetInt32(1);
-                    fName = reader.GetValue(2).ToString();
-                    lName = reader.GetValue(3).ToString();
-                    dateBirth = reader.GetDateTime(4);
-                    streetNo = reader.GetValue(5).ToString();
-                    streetName = reader.GetValue(6).ToString();
-                    city = reader.GetValue(7).ToString();
-                    province = reader.GetValue(8).ToString();
-                    Postal = reader.GetValue(9).ToString();
-                    country = reader.GetValue(10).ToString();
-                    phoneNo = reader.GetValue(11).ToString();
-                    email = reader.GetValue(12).ToString();
-                    CustomerID.Text = currentID.ToString();
-                    BranchID.Text = branchID.ToString();
-                    FirstName.Text = fName;
-                    LastName.Text = lName;
-                    DOB.Value = dateBirth;
-                    StreetNo.Text = streetNo;
-                    StreetName.Text = streetName;
-                    City.Text = city;
-                    Province.Text = province;
-                    PostalCode.Text = Postal;
-                    Country.Text = country;
-                    PhoneNo.Text = phoneNo;
-                    Email.Text = email;
-                    currentId = int.Parse(CustomerID.Text);
+                    connObj.Open();
+                    string queryNext = $"SELECT TOP 1 * FROM Customers WHERE CustomerID > @customerID ORDER BY CustomerID ASC";
+                    using (SqlCommand cmdNext = new SqlCommand(queryNext, connObj))
+                    {
+                        cmdNext.Parameters.AddWithValue("@customerID", CustomerID.Text);
+                        using (SqlDataReader reader = cmdNext.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                               
+                                CustomerID.Text = reader.GetInt32(0).ToString() ?? string.Empty;
+                                BranchID.Text = reader.GetInt32(1).ToString();
+                                FirstName.Text = reader.GetValue(2).ToString() ?? string.Empty;
+                                LastName.Text = reader.GetValue(3).ToString() ?? string.Empty;
+                                DOB.Value = reader.GetDateTime(4);
+                                StreetNo.Text = reader.GetValue(5).ToString() ?? string.Empty;
+                                StreetName.Text = reader.GetValue(6).ToString() ?? string.Empty;
+                                City.Text = reader.GetValue(7).ToString() ?? string.Empty;
+                                Province.Text = reader.GetValue(8).ToString() ?? string.Empty;
+                                PostalCode.Text = reader.GetValue(9).ToString() ?? string.Empty;
+                                Country.Text = reader.GetValue(10).ToString() ?? string.Empty;
+                                PhoneNo.Text = reader.GetValue(11).ToString() ?? string.Empty;
+                                Email.Text = reader.GetValue(12).ToString() ?? string.Empty;
+                            }
+                            else
+                            {
+                                MessageBox.Show("It is the Last record!");
+                            }
+                            reader.Close();
+                        }
+                    }
+                    connObj.Close();
                 }
-                else
-                {
-                    MessageBox.Show("It is the Last record!");
-                }
-                // Close the SqlDataReader
-                reader.Close();
             }
             catch (SqlException ex)
             {
                 MessageBox.Show("Failed Move Next: ", ex.Message);
             }
-
         }
 
         private void ShowAll_Click(object sender, EventArgs e)//Optional

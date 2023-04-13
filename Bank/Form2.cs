@@ -26,7 +26,7 @@ namespace Bank
                 connObj.Open();
             }
            
-            SqlCommand command = new SqlCommand("SELECT * from Customer;", connObj);
+            SqlCommand command = new SqlCommand("SELECT * from Customers;", connObj);
             SqlDataAdapter dataAdapter = new SqlDataAdapter(command);
             DataTable dataTable = new DataTable();
             dataAdapter.SelectCommand = command;
